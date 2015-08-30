@@ -1,0 +1,34 @@
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+html, body {
+	min-height: 100%;
+}
+
+body {
+	background: linear-gradient(to bottom, #347, #457);
+/* 	background-attachment: fixed; */
+	position: relative;
+}
+
+#gameContainer {
+	width: 960px;
+	height: 600px;
+	border: 10px solid burlywood;
+	margin: 50px auto;
+	position: relative;
+	overflow: hidden;
+	background: #8A3B55;
+}
+
+#snake {
+	position: absolute;
+	width: 20px;
+	height: 20px;
+	background-color: yellowgreen;
+	top: 0;
+	left:0;
+}
