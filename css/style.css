@@ -24,11 +24,21 @@ body {
 	background: #8A3B55;
 }
 
-#snake {
+.snake {
 	position: absolute;
 	width: 20px;
 	height: 20px;
 	background-color: yellowgreen;
+}
+
+.start-coords {
 	top: 0;
-	left:0;
+	left:0; 
+}
+
+#food {
+	position: absolute;
+	width: 20px;
+	height: 20px;
+	background-color: darkorange;
 }
