@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		stopId,
 		food = null,
 		cellSize = 20,
-		stepTime = 150,
+		stepTime = 50,
 		snakeArray = [],
 		changeSnakeDirArray = [],
 		innerContainerWidth = container.clientWidth,
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 			if ( !snakeArray.length ) snakeArray.push(snake);
 
-			shiftEverySnakeComponents(dir, vector);
+			treatSnakeMove(dir, vector);
 
 			snakeEat();
 
@@ -86,14 +86,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	function gameEnd() {
 		alert("You lose!");
-		removeFood();
 		clearTimeout(stopId);
+		removeFood();
 		toStartPosition();
+		clearSnakeComponents();
+		snakeArray = [];
+	}
+
+	function clearSnakeComponents() {
 		snakeArray.forEach(function(el, index){
 			if (!index) return false;
 			el.parentNode.removeChild(el);
 		});
-		snakeArray = [];
 	}
 
 	function snakeEat() {
@@ -130,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		snakeArray.push(tail);
 	}
 
-	function shiftEverySnakeComponents(dir, vector) {
+	function treatSnakeMove(dir, vector) {
 		snakeArray.forEach(function(el, index, arr){
 			var result;
 			el.currentLeftOffset = parseInt( _getC(el).left );
@@ -144,13 +148,35 @@ document.addEventListener('DOMContentLoaded', function() {
 				el.currentVector = el.futureVector || el.currentVector;
 			}
 
-			el.style[el.currentDirection] = parseInt( _getC(el)[el.currentDirection] ) + (cellSize * el.currentVector) + "px";
+			shiftEverySnakeComponents(el, index, arr);
 
 			if (index) {
 				el.futureDirection = arr[index - 1].currentDirection;
 				el.futureVector = arr[index - 1].currentVector;
 			}
 		});
+	}
+
+	function shiftEverySnakeComponents(el, index, arr) {
+		var head = arr[0],
+			  dir = el.currentDirection;
+		el.style[dir] = parseInt( _getC(el)[dir] ) + (cellSize * el.currentVector) + "px";
+
+		if (index !== arr.length - 1) return;
+
+		killMySelf(head);
+	}
+
+	function killMySelf(head) {
+		var kill;
+		kill = snakeArray.slice(1).some(function(item){
+			return head.currentTopOffset == item.currentTopOffset &&
+						 head.currentLeftOffset == item.currentLeftOffset;
+			});
+
+		if ( !kill ) return;
+
+		gameEnd();
 	}
 
 	function toStartPosition() {
