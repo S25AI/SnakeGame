@@ -1,11 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
 	var snake = document.querySelector("#snake"),
 		container = document.querySelector("#gameContainer"),
+		gameMusic = document.querySelector('#snakeMusic'),
 		_getC = window.getComputedStyle,
 		stopId,
 		food = null,
 		cellSize = 20,
-		stepTime = 50,
+		stepTime = 150,
+		dieTime = 3000,
 		snakeArray = [],
 		changeSnakeDirArray = [],
 		innerContainerWidth = container.clientWidth,
@@ -56,6 +58,8 @@ document.addEventListener('DOMContentLoaded', function() {
 			stopId = null;
 		}
 
+		startMusicPlay();
+
 		stopId = setInterval(function() {
 			if (!food) createFood();
 
@@ -65,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 			snakeEat();
 
-			if (parseInt( snake.style[dir] ) * vector > wall) {
+			if (parseInt( snake.style[dir] ) * vector >= wall) {
 				gameEnd();
 			}
 		}, stepTime);
@@ -85,12 +89,17 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 
 	function gameEnd() {
-		alert("You lose!");
 		clearTimeout(stopId);
-		removeFood();
-		toStartPosition();
-		clearSnakeComponents();
-		snakeArray = [];
+		animateSnakeDie();
+		setTimeout(function(){
+			removeFood();
+			stopMusicPlay();
+			toStartPosition();
+			clearSnakeComponents();
+			snake.classList.remove('snake-die');
+			snakeArray = [];
+		}, dieTime);
+
 	}
 
 	function clearSnakeComponents() {
@@ -168,15 +177,30 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 
 	function killMySelf(head) {
-		var kill;
-		kill = snakeArray.slice(1).some(function(item){
-			return head.currentTopOffset == item.currentTopOffset &&
-						 head.currentLeftOffset == item.currentLeftOffset;
+		var kill = snakeArray.slice(1).some(function(item){
+			return parseInt( _getC(head).top ) == parseInt( _getC(item).top ) &&
+						 parseInt( _getC(head).left ) == parseInt( _getC(item).left );
 			});
 
 		if ( !kill ) return;
 
 		gameEnd();
+	}
+
+	function animateSnakeDie() {
+		snakeArray.forEach(function(el){
+			el.classList.add('snake-die');
+		});
+	}
+
+	function startMusicPlay() {
+		if ( !gameMusic.paused ) return false;
+		gameMusic.load();
+		gameMusic.play();
+	}
+
+	function stopMusicPlay() {
+		gameMusic.pause();
 	}
 
 	function toStartPosition() {
