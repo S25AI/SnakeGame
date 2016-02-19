@@ -42,3 +42,10 @@ body {
 	height: 20px;
 	background-color: darkorange;
 }
+
+.snake-die {
+	background: darkred;
+	box-shadow: 0 0 7px rgba(255, 127, 0, .8);
+	transform: scale(1.1);
+	transition: all 3s linear;
+}
