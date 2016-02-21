@@ -38,15 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	};
 
-	document.onkeydown = function(event) {
-		var code = event.keyCode;
-
-		for (var key in keysContainer) {
-			if (code == key) {
-				runSnake(keysContainer[key]);
-			}
-		}
-	}
+	document.addEventListener('keydown', gameArrowHandlers, false);
 
 	function runSnake(key) {
 		var dir = key.dir,
@@ -65,13 +57,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 			if ( !snakeArray.length ) snakeArray.push(snake);
 
-			treatSnakeMove(dir, vector);
-
+			treatSnakeMove(dir, vector, wall);
 			snakeEat();
-
-			if (parseInt( snake.style[dir] ) * vector >= wall) {
-				gameEnd();
-			}
+			
 		}, stepTime);
 	}
 
@@ -90,16 +78,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	function gameEnd() {
 		clearTimeout(stopId);
+		setGameEndHandler();
 		animateSnakeDie();
 		setTimeout(function(){
 			removeFood();
 			stopMusicPlay();
 			toStartPosition();
 			clearSnakeComponents();
+			resetGameEndHandler();
 			snake.classList.remove('snake-die');
 			snakeArray = [];
 		}, dieTime);
-
 	}
 
 	function clearSnakeComponents() {
@@ -143,7 +132,12 @@ document.addEventListener('DOMContentLoaded', function() {
 		snakeArray.push(tail);
 	}
 
-	function treatSnakeMove(dir, vector) {
+	function treatSnakeMove(dir, vector, wall) {
+		if (parseInt( snake.style[dir] ) * vector >= wall) {
+			gameEnd();
+			return false;
+		}
+
 		snakeArray.forEach(function(el, index, arr){
 			var result;
 			el.currentLeftOffset = parseInt( _getC(el).left );
@@ -201,6 +195,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	function stopMusicPlay() {
 		gameMusic.pause();
+	}
+
+	function setGameEndHandler() {
+		document.addEventListener('keydown', preventArrowsKeyDownEvent, false);
+		document.removeEventListener('keydown', gameArrowHandlers, false);
+	}
+
+	function resetGameEndHandler() {
+		document.removeEventListener('keydown', preventArrowsKeyDownEvent, false);
+		document.addEventListener('keydown', gameArrowHandlers, false);
+	}
+
+	function preventArrowsKeyDownEvent(event) {
+			var code = event.keyCode;
+			if (code >=37 && code <= 40) return false;
+	}
+
+	function gameArrowHandlers(event) {
+		var code = event.keyCode;
+
+		for (var key in keysContainer) {
+			if (code == key) {
+				runSnake(keysContainer[key]);
+			}
+		}
 	}
 
 	function toStartPosition() {
