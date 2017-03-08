@@ -10,8 +10,20 @@
 	<div id="gameContainer">
 		<div class="start-coords snake" id="snake"></div>
 	</div>
+	<div class="dashboard">
+		<div class="dashboard__title">Доска почета</div>
+		<div class="dashboard-list"></div>
+	</div>
 	<audio id="snakeMusic">
 		<source src="audio/indiCot.mp3" type="audio/mpeg">
 	</audio>
+	<div class="modal">
+		<div class="modal__window">
+			<form id="auth">
+				<input class="modal__input" name="login" type="text" placeholder="Введите логин">
+				<button class="modal__btn" name="submit" type="submit">Подтвердить</button>
+			</form>
+		</div>
+	</div>
 </body>
 </html>
