@@ -1,56 +1,118 @@
+'use strict';
+
+function runSimpleSequence(...rest) {
+	rest.reduce((p, n) => n(), () => {});
+}
+
 document.addEventListener('DOMContentLoaded', function() {
-	var snake = document.querySelector("#snake"),
+	let snake = document.querySelector("#snake"),
 		container = document.querySelector("#gameContainer"),
 		gameMusic = document.querySelector('#snakeMusic'),
+		modal = document.querySelector('.modal'),
+		form = document.forms.auth,
 		_getC = window.getComputedStyle,
-		stopId,
+		stopId = null,
 		food = null,
-		cellSize = 20,
-		stepTime = 150,
-		dieTime = 3000,
+		cellSize = 20,  //px
+		stepTime = 50,  //px
+		dieTime = 3000, //ms
 		snakeArray = [],
-		changeSnakeDirArray = [],
+		userName = '',
 		innerContainerWidth = container.clientWidth,
 		innerContainerHeight = container.clientHeight,
 		cellsInRow = innerContainerWidth / cellSize,
 		cellsInColumn = innerContainerHeight / cellSize;
 
-	var keysContainer = {
-		"40": {
+	const keyContainersMap = new Map([
+		[40, {
 			"dir" : "top",
 			"wall": innerContainerHeight - cellSize,
 			"vector": 1
-		},
-		"39": {
+		}],
+		[39, {
 			"dir" : "left",
 			"wall" : innerContainerWidth - cellSize,
 			"vector": 1
-		},
-		"37": {
+		}],
+		[37, {
 			"dir" : "left",
 			"wall": 0,
 			"vector": -1
-		},
-		"38": {
+		}],
+		[38, {
 			"dir" : "top",
 			"wall": 0,
 			"vector": -1
+		}]
+	]);
+
+	appInit();
+
+	function appInit() {
+		auth();
+	}
+
+	function auth() {
+		userName = getUserDataFromLocalStorage();
+
+		if (userName) {
+			showMainScreen();
+		} else {
+			form.onsubmit = onFormSubmit;
 		}
-	};
+	}
 
-	document.addEventListener('keydown', gameArrowHandlers, false);
+	function showMainScreen() {
+		modal.classList.add('hide');
+		showUserData();
+		setMoveListener();
+	}
 
-	function runSnake(key) {
-		var dir = key.dir,
-			wall = key.wall,
-			vector = key.vector;
+	function showUserData() {
+		let item = document.createElement('li');
+		item.className = 'dashboard-list__item';
+		item.textContent = userName;
+		let list = document.querySelector('.dashboard-list');
+		list.appendChild(item);
+	}
 
+	function onFormSubmit(e) {
+		e.preventDefault();
+		let {login} = form.elements;
+		userName = login.value;
+		if (!userName.trim()) {
+			login.value = '';
+			login.focus();
+			return;
+		}
+		saveUserDataToLocalStorage(userName);
+		showMainScreen();
+	}
+
+	function saveUserDataToLocalStorage(login) {
+		localStorage.setItem('login', login);
+	}
+
+	function getUserDataFromLocalStorage() {
+		let login = '';
+		try {
+			login = localStorage.getItem('login');
+		} catch(e) {
+			console.log(e.message);
+		} finally {
+			return login;
+		}
+	}
+
+	function setMoveListener() {
+		document.addEventListener('keydown', gameArrowHandlers, false);
+	}
+
+	function runSnake({dir, wall, vector}) {
 		if (stopId) {
 			clearTimeout(stopId);
 			stopId = null;
 		}
-
-		startMusicPlay();
 
 		stopId = setInterval(function() {
 			if (!food) createFood();
@@ -76,23 +138,21 @@ document.addEventListener('DOMContentLoaded', function() {
 		food = null;
 	}
 
-	function gameEnd() {
+	function resetTimer() {
 		clearTimeout(stopId);
-		setGameEndHandler();
-		animateSnakeDie();
-		setTimeout(function(){
-			removeFood();
-			stopMusicPlay();
-			toStartPosition();
-			clearSnakeComponents();
-			resetGameEndHandler();
-			snake.classList.remove('snake-die');
+	}
+
+	function gameEnd() {
+		runSimpleSequence(resetTimer, setGameEndHandler, animateSnakeDie);
+		setTimeout(() => {
+			runSimpleSequence(removeFood, stopMusicPlay, toStartPosition, clearSnakeComponents,
+			resetGameEndHandler, restoreDefaultSnakeColor);
 			snakeArray = [];
 		}, dieTime);
 	}
 
 	function clearSnakeComponents() {
-		snakeArray.forEach(function(el, index){
+		snakeArray.forEach((el, index) => {
 			if (!index) return false;
 			el.parentNode.removeChild(el);
 		});
@@ -114,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 
 	function createSnakeTail() {
-		var tail = document.createElement('tail'),
+		var tail = document.createElement('div'),
 				prevTail = snakeArray[snakeArray.length - 1];
 
 		tail.className = 'snake';
@@ -138,8 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			return false;
 		}
 
-		snakeArray.forEach(function(el, index, arr){
-			var result;
+		snakeArray.forEach((el, index, arr) => {
 			el.currentLeftOffset = parseInt( _getC(el).left );
 			el.currentTopOffset = parseInt( _getC(el).top );
 
@@ -171,7 +230,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 
 	function killMySelf(head) {
-		var kill = snakeArray.slice(1).some(function(item){
+		var kill = snakeArray.slice(1).some(item => {
 			return parseInt( _getC(head).top ) == parseInt( _getC(item).top ) &&
 						 parseInt( _getC(head).left ) == parseInt( _getC(item).left );
 			});
@@ -182,9 +241,11 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 
 	function animateSnakeDie() {
-		snakeArray.forEach(function(el){
-			el.classList.add('snake-die');
-		});
+		snakeArray.forEach(el => el.classList.add('snake-die'));
+	}
+
+	function restoreDefaultSnakeColor() {
+		snake.classList.remove('snake-die');
 	}
 
 	function startMusicPlay() {
@@ -214,12 +275,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	function gameArrowHandlers(event) {
 		var code = event.keyCode;
-
-		for (var key in keysContainer) {
-			if (code == key) {
-				runSnake(keysContainer[key]);
-			}
-		}
+		runSnake(keyContainersMap.get(code));
 	}
 
 	function toStartPosition() {

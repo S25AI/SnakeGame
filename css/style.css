@@ -8,27 +8,32 @@ html, body {
 	min-height: 100%;
 }
 
+html {
+	font-size: 62.5%;
+}
+
 body {
 	background: linear-gradient(to bottom, #347, #457);
-/* 	background-attachment: fixed; */
 	position: relative;
+	font: 1.6rem/1 Arial, Helvetica, sans-serif;
+	border-top: 1px solid transparent;
 }
 
 #gameContainer {
-	width: 960px;
-	height: 600px;
-	border: 10px solid burlywood;
-	margin: 50px auto;
+	width: 96rem;
+	height: 60rem;
+	border: 1rem solid burlywood;
+	margin: 5rem 0 0 10rem;
 	position: relative;
 	overflow: hidden;
-	background: #8A3B55;
+	background: #0f883a;
 }
 
 .snake {
 	position: absolute;
-	width: 20px;
-	height: 20px;
-	background-color: yellowgreen;
+	width: 2rem;
+	height: 2rem;
+	background-color: #000;
 }
 
 .start-coords {
@@ -38,8 +43,8 @@ body {
 
 #food {
 	position: absolute;
-	width: 20px;
-	height: 20px;
+	width: 2rem;
+	height: 2rem;
 	background-color: darkorange;
 }
 
@@ -48,4 +53,79 @@ body {
 	box-shadow: 0 0 7px rgba(255, 127, 0, .8);
 	transform: scale(1.1);
 	transition: all 3s linear;
+}
+
+.dashboard {
+	position: absolute;
+	top: 5rem;
+	right: 5rem;
+	width: 30rem;
+	height: 40rem;
+	border: 5px solid darkorange;
+	background: #9a8;
+	font-size: 2rem;
+	padding: 1rem 1.5rem;
+}
+
+.dashboard__title {
+	margin: 2rem auto 0;
+	text-align: center;
+}
+
+.modal {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 999;
+	background: #111;
+	overflow: hidden;
+	display: flex;
+}
+
+.modal__window {
+	margin: auto;
+	padding: 3rem;
+	background: #fff;
+	border-radius: 8px;
+}
+
+:focus {
+	outline: none;
+}
+
+.modal__input {
+	height: 4rem;
+	padding: 0 2rem;
+	font-size: 2rem;
+	border-radius: 4px;
+	border: 1px solid #ccc;
+	transition: .2s ease-in-out border-color;
+}
+
+.modal__input:hover {
+	border: 2px solid #4d88ef;
+	padding: 0 1.9rem;
+}
+
+.modal__btn {
+	padding: 1rem 1.5rem;
+	background: #4d88ef;
+	color: #fff;
+	font-size: 2rem;
+	cursor: pointer;
+	border: none;
+	border-radius: 4px;
+	margin-left: 2rem;
+	transition: .2s ease-in-out all;
+}
+
+.modal__btn:hover {
+	cursor: pointer;
+	background: #2974f7;
+}
+
+.hide {
+	display: none !important;
 }
