@@ -1,0 +1,26 @@
+{
+  "name": "SnakeGame",
+  "version": "1.0.0",
+  "description": "Just a simple SnakeGame. Works in last versions modern browsers.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/S25AI/SnakeGame.git"
+  },
+  "keywords": [],
+  "author": "Dmitriy.Silvestrov <jade25st@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/S25AI/SnakeGame/issues"
+  },
+  "homepage": "https://github.com/S25AI/SnakeGame#readme",
+  "dependencies": {
+    "express": "^4.15.2"
+  },
+  "devDependencies": {
+    "body-parser": "^1.17.1"
+  }
+}

@@ -38,6 +38,8 @@ document.addEventListener('DOMContentLoaded', function() {
 		cellsInRow = innerContainerWidth / cellSize,
 		cellsInColumn = innerContainerHeight / cellSize;
 
+	const INTERVAL = 10000;
+
 	const keyContainersMap = new Map([
 		[40, {
 			"dir" : "top",
@@ -65,6 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	function appInit() {
 		auth();
+		setRealTimeLegendsUpdate();
 	}
 
 	function auth() {
@@ -83,17 +86,49 @@ document.addEventListener('DOMContentLoaded', function() {
 		setMoveListener();
 	}
 
-	function getLegendsFromLocalStorage() {
+	function getLegends() {
 		try {
 			userLegends = JSON.parse( localStorage.getItem('legends') ) || [];
 		} catch(e) {
 			console.log(e.message);
+		} finally {
+			if (userLegends.length) {
+				return Promise.resolve(userLegends);
+			}
+		}
+
+		if (!userLegends.length) {
+			return httpGET('scores');
 		}
 	}
 
+	function parseLegends(res) {
+		try {
+			userLegends = JSON.parse(res) || [];
+		} catch(e)  {
+			console.log(e.message);
+		}
+	}
+
+	function setRealTimeLegendsUpdate() {
+		setTimeout(() => {
+			httpGET('scores')
+				.then(res => {
+					parseLegends(res);
+					updateHall();
+					setRealTimeLegendsUpdate();
+				});
+		}, INTERVAL);
+	}
+
 	function showUserData() {
-		getLegendsFromLocalStorage();
-		updateHall();
+		getLegends()
+			.then(res => {
+				if (typeof res === 'string') {
+					parseLegends(res);
+				}
+				updateHall();
+			}).catch(console.log);
 	}
 
 	function updateHall() {
@@ -105,8 +140,6 @@ document.addEventListener('DOMContentLoaded', function() {
 			item.append(title, scoreTag);
 			fameHallList.append(item);
 		});
-		console.log(fameHallList);
-		console.log(123);
 	}
 
 	function updateView() {
@@ -142,6 +175,28 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	}
 
+	function httpPOST(url, data) {
+		return new Promise((res, rej) => {
+			let xhr = new XMLHttpRequest();
+			xhr.open('post', url, true);
+			xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+			xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+			xhr.send(data);
+			xhr.onload = () => res(xhr.response);
+			xhr.onerror = () => rej(xhr.status);
+		});
+	}
+
+	function httpGET(url) {
+		return new Promise((res, rej) => {
+			let xhr = new XMLHttpRequest();
+			xhr.open('get', url, true);
+			xhr.send();
+			xhr.onload = () => res(xhr.response);
+			xhr.onerror = () => rej(xhr.status);
+		});
+	}
+
 	function saveUserResult() {
 		let isNewLegend = userLegends.some(user => user.score < score);
 
@@ -151,11 +206,11 @@ document.addEventListener('DOMContentLoaded', function() {
 				.sort((a, b) => a.score < b.score ? 1 : a.score > b.score ? -1 : 0);
 
 			//save only 10 best scores
-			if (userLegends.length > 10) userLegends = userLegends.slice(0, -1); 
+			if (userLegends.length > 10) userLegends = userLegends.slice(0, -1);
+			updateHall();
+			httpPOST('/scores', JSON.stringify(userLegends));
+			localStorage.setItem('legends', JSON.stringify(userLegends));
 		}
-
-		updateHall();
-		localStorage.setItem('legends', JSON.stringify(userLegends));
 	}
 
 	function clearUserResult() {
