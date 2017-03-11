@@ -4,11 +4,24 @@ function runSimpleSequence(...rest) {
 	rest.reduce((p, n) => n(), () => {});
 }
 
+function elt(el='div') {
+	return function(cls='', text='') {
+		let tag = document.createElement(el);
+		tag.className = cls;
+		tag.textContent = text;
+		return tag;
+	};
+}
+
+const div = elt();
+const li = elt('li');
+
 document.addEventListener('DOMContentLoaded', function() {
 	let snake = document.querySelector("#snake"),
 		container = document.querySelector("#gameContainer"),
 		gameMusic = document.querySelector('#snakeMusic'),
 		modal = document.querySelector('.modal'),
+		fameHallList = document.querySelector('.famehall-list'),
 		form = document.forms.auth,
 		_getC = window.getComputedStyle,
 		stopId = null,
@@ -18,6 +31,8 @@ document.addEventListener('DOMContentLoaded', function() {
 		dieTime = 3000, //ms
 		snakeArray = [],
 		userName = '',
+		score = 0,
+		userLegends = [],
 		innerContainerWidth = container.clientWidth,
 		innerContainerHeight = container.clientHeight,
 		cellsInRow = innerContainerWidth / cellSize,
@@ -68,12 +83,35 @@ document.addEventListener('DOMContentLoaded', function() {
 		setMoveListener();
 	}
 
+	function getLegendsFromLocalStorage() {
+		try {
+			userLegends = JSON.parse( localStorage.getItem('legends') ) || [];
+		} catch(e) {
+			console.log(e.message);
+		}
+	}
+
 	function showUserData() {
-		let item = document.createElement('li');
-		item.className = 'dashboard-list__item';
-		item.textContent = userName;
-		let list = document.querySelector('.dashboard-list');
-		list.appendChild(item);
+		getLegendsFromLocalStorage();
+		updateHall();
+	}
+
+	function updateHall() {
+		fameHallList.innerHTML = '';
+		userLegends.forEach(({userName, score}) => {
+			let item = li('famehall-list__item famehall-item');
+			let title = div('famehall-item__title', userName);
+			let scoreTag = div('famehall-item__score', score);
+			item.append(title, scoreTag);
+			fameHallList.append(item);
+		});
+		console.log(fameHallList);
+		console.log(123);
+	}
+
+	function updateView() {
+		let scoreTag = document.querySelector('.dashboard__score');
+		scoreTag.textContent = score;
 	}
 
 	function onFormSubmit(e) {
@@ -104,6 +142,27 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	}
 
+	function saveUserResult() {
+		let isNewLegend = userLegends.some(user => user.score < score);
+
+		if (isNewLegend || userLegends.length < 10) {
+			userLegends.push({userName, score});
+			userLegends = userLegends
+				.sort((a, b) => a.score < b.score ? 1 : a.score > b.score ? -1 : 0);
+
+			//save only 10 best scores
+			if (userLegends.length > 10) userLegends = userLegends.slice(0, -1); 
+		}
+
+		updateHall();
+		localStorage.setItem('legends', JSON.stringify(userLegends));
+	}
+
+	function clearUserResult() {
+		score = 0;
+		updateView();
+	}
+
 	function setMoveListener() {
 		document.addEventListener('keydown', gameArrowHandlers, false);
 	}
@@ -126,11 +185,11 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 
 	function createFood() {
-		food = document.createElement('div');
+		food = div();
 		food.setAttribute('id', 'food');
 		food.style.left = Math.floor( Math.random() * cellsInRow ) * cellSize + "px";
 		food.style.top = Math.floor( Math.random() * cellsInColumn ) * cellSize + "px";
-		container.appendChild(food);
+		container.append(food);
 	}
 
 	function removeFood() {
@@ -146,7 +205,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		runSimpleSequence(resetTimer, setGameEndHandler, animateSnakeDie);
 		setTimeout(() => {
 			runSimpleSequence(removeFood, stopMusicPlay, toStartPosition, clearSnakeComponents,
-			resetGameEndHandler, restoreDefaultSnakeColor);
+			resetGameEndHandler, restoreDefaultSnakeColor, saveUserResult, clearUserResult);
 			snakeArray = [];
 		}, dieTime);
 	}
@@ -168,13 +227,17 @@ document.addEventListener('DOMContentLoaded', function() {
 				snakeGrow();
 	}
 
+	function increaseUserPoints() {
+		score += 5;
+		updateView();
+	}
+
 	function snakeGrow() {
-		removeFood();
-		createSnakeTail();
+		runSimpleSequence(removeFood, increaseUserPoints, createSnakeTail);
 	}
 
 	function createSnakeTail() {
-		var tail = document.createElement('div'),
+		var tail = div(),
 				prevTail = snakeArray[snakeArray.length - 1];
 
 		tail.className = 'snake';
@@ -188,7 +251,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		tail.style.left = tail.currentLeftOffset + "px";
 		tail.style.top = tail.currentTopOffset + "px";
 
-		container.appendChild(tail);
+		container.append(tail);
 		snakeArray.push(tail);
 	}
 
