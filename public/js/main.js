@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		cellsInRow = innerContainerWidth / cellSize,
 		cellsInColumn = innerContainerHeight / cellSize;
 
-	const INTERVAL = 10000;
+	const INTERVAL = 100000;
 
 	const keyContainersMap = new Map([
 		[40, {
@@ -71,13 +71,23 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 
 	function auth() {
-		userName = getUserDataFromLocalStorage();
-
-		if (userName) {
-			showMainScreen();
-		} else {
-			form.onsubmit = onFormSubmit;
-		}
+		httpGET('/auth')
+			.then(res => {
+				let {login, auth} = JSON.parse(res);
+				if (auth) userName = login;
+				return 1;
+			})
+			.then(() => {
+				if (!userName) userName = getUserDataFromLocalStorage();
+				return 1;
+			})
+			.then(() => {
+				if (userName) {
+					showMainScreen();
+				} else {
+					form.onsubmit = onFormSubmit;
+				}
+			}).catch(console.log);
 	}
 
 	function showMainScreen() {
@@ -156,8 +166,18 @@ document.addEventListener('DOMContentLoaded', function() {
 			login.focus();
 			return;
 		}
-		saveUserDataToLocalStorage(userName);
-		showMainScreen();
+		httpPOST('/auth', JSON.stringify([userName]))
+			.then(res => {
+				res = JSON.parse(res);
+				if (res.auth) {
+					saveUserDataToLocalStorage(userName);
+					showMainScreen();
+
+				} else {
+					login.value = '';
+					login.placeholder = 'Указанный логин занят';
+				}
+			}).catch(console.log);
 	}
 
 	function saveUserDataToLocalStorage(login) {
